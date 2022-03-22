@@ -1,0 +1,451 @@
+ import java.util.Scanner;
+    import java.util.Random;
+
+
+    public class CompletedMini {
+        public static void main(String[] param){
+            game();
+
+            System.exit(0);
+
+
+        }
+
+    //************************************************************************************
+    // Game methods
+    // Operations:
+    // - Game method where the entire game operations take place
+    // - Method that checks if the player wants to defend
+    //************************************************************************************
+
+    public static void game(){
+        int healingponts=0;
+        int survivalscore = dice_roll();
+        String name = name_input();
+        int counter = 0;
+        final int array_size= 100000000;
+
+
+        String [] animals =  {"bear","wolf","deer","rabbit","wild boar"};
+        int    [] values_array= new int[array_size];
+
+        Healer h = healer(name,healingponts,survivalscore);
+
+        System.out.println(getName(h) + ", you enter the forest and your task is to heal the wounded animals, you start off with  "
+                + getHealingPoints(h) +  " and a survival score of:" + getSurvivalScore(h));
+
+        String answer = String_input("Do you want to start the game:Yes/No ?");
+
+
+        while (answer.equals("Yes")&& survivalscore!=0){
+
+
+            int damage_value = randomInt(12);
+            values_array[counter] = damage_value;
+
+
+            String animal = random_animal(animals);
+            answer = String_input("You come across a " + animal +" and it has a damage value of : "+ damage_value+
+                    " do you wish to heal it? ");
+
+            boolean Attack = attack(animal,answer,damage_value);
+
+            boolean Success = Success(survivalscore, Attack, damage_value,answer);
+
+            healingponts = points(Attack,Success,getHealingPoints(h),answer);
+            survivalscore = SurvivalPoints(Attack,Success,getSurvivalScore(h));
+
+
+            Defending(answer);
+
+            setHealingPoints(h,healingponts);
+            setSurvivalScore(h,survivalscore);
+
+            System.out.println("You have " + getSurvivalScore(h) + " survival points left and " + getHealingPoints(h) +
+                    " healing points");
+
+
+
+
+            answer = String_input("Do you wish to continue:Yes/No");
+
+
+            counter+=1;
+        }
+
+        sort_algorithm(values_array);
+
+        for (int i=0; i < counter; i++)
+        {
+            System.out.print(values_array[i]+" ");
+        }
+
+
+        Healer_Print(h);
+        System.out.println("The most damaged animal you found had a damage value of: " + values_array[0]);
+
+
+    }
+
+    //———————————————————————————————————-
+    // Method that checks if the player is defending
+    //
+
+    public static void Defending(String answer){
+
+        if (!answer.equals("Yes")){
+            System.out.println("You decided not to heal, your healing points remain the same.");
+        }
+    }
+
+    //************************************************************************************
+    // I/O Methods
+    // Operations:
+    // - Asks the user for their name and returns it
+    // - General method used to input a string
+    //************************************************************************************
+
+
+
+    //———————————————————————————————————-
+    // Method that returns the name of the user
+    //
+
+    public static String name_input(){
+        String name = String_input("Hello adventurer! Please enter your name");
+        return name;
+    }
+
+
+    //———————————————————————————————————-
+    // General string input method
+    //
+    public static String String_input(String answer){
+        Scanner scanner = new Scanner(System.in);
+        String message;
+
+        System.out.println(answer);
+        message = scanner.nextLine();
+        return message;
+    }
+
+
+
+
+
+
+
+    //************************************************************************************
+    // Methods that deal with the point system
+    // Operations:
+    // - Checks if the player is attacked by the animal
+    // - Checks if the player succeeded in healing the animal
+    // - Add healing points depending on if the player succeeded in healing the animal and if the animal attacked the player
+    // - Subtract healing points depending on if the player succeeded in healing the animal and if the animal attacked the player
+    //************************************************************************************
+
+
+
+    //———————————————————————————————————-
+    // Checks if the animal attacked the player and returns either true or false
+    //
+
+    public static boolean attack(String animal,String answer,int damage_value){
+        boolean Attack;
+
+        if (answer.equals("No")){
+            Attack = false;
+        }
+
+        else if (damage_value<3 ){
+            Attack = true;
+        }
+
+        else{
+            Attack = false;
+        }
+
+        return Attack;
+
+    }
+
+
+    //———————————————————————————————————-
+    // Checks if the player successfully healed the animal and returns false or true
+    //
+
+
+    public static boolean Success(int survivalscore, boolean attack,int damage_value,String answer){
+        boolean success ;
+
+        if (answer.equals("No")){
+            success = true;
+        }
+
+        else if (damage_value>survivalscore){
+            success = false;
+        }
+
+        else if(attack== true){
+            success = false;
+        }
+
+        else {
+            success = true;
+        }
+
+        return success;
+
+    }
+
+
+    //———————————————————————————————————-
+    // Update the healing points
+    //
+
+
+    public static int points(boolean attack, boolean success, int healingpoints, String answer){
+        if (answer.equals("No")){
+            healingpoints+=0;
+        }
+        else if(attack == true && success == false ){
+            healingpoints-=1;
+            System.out.println("The animal attacked you, you lost one healing point");
+        }
+
+        else if (attack == false && success == true){
+            healingpoints+=1;
+            System.out.println("You successfully healed the animal");
+        }
+
+        else{
+            System.out.println("You failed to heal the animal and lost a survival point");
+        }
+        return healingpoints;
+    }
+
+
+
+    //———————————————————————————————————-
+    // Update the survival points of the player
+    //
+
+
+    public static int SurvivalPoints(boolean attack, boolean success, int survivalpoints){
+        if(attack == true && success == false ){
+            survivalpoints-=1;
+        }
+        else if (attack == false && success == false){
+            survivalpoints-=1;
+        }
+        return survivalpoints;
+    }
+
+
+
+
+    //************************************************************************************
+    // Random number generators
+    // Operations:
+    // - create a random number between 0 and a boundary give by the user
+    // - use the random number generator to select a random animal from the array containing animals
+    // - use the random number generator to create 2 dice rolls and add their sum, which is returned
+    //************************************************************************************
+
+
+    //———————————————————————————————————-
+    // create a random number between 0 and a boundary given by the user
+    //
+    public static int randomInt(int bound) {
+        Random r = new Random();
+        return r.nextInt(bound);
+    }
+
+
+
+    //———————————————————————————————————-
+    // use the random number generator to create 2 dice rolls and add their sum, which is returned
+    //
+    public static Integer dice_roll(){
+        int roll1;
+        int roll2;
+        int dice_value;
+        roll1 = randomInt(6)+1;
+        roll2 = randomInt(6)+1;
+        dice_value = roll1 + roll2;
+        return dice_value;
+    }
+
+
+    //———————————————————————————————————-
+    // use the random number generator to select a random animal from the array containing animals
+    //
+
+    public static String random_animal(String[] animals){
+        int i = randomInt(5);
+        String animal = animals[i];
+
+        return animal;
+    }
+
+
+
+
+
+    //************************************************************************************
+    // Healer ADT
+    // Operations:
+    // - Get and set the name of the healer/player
+    // - Get and set the survival score the healer/player has
+    // - Get and set the healing points the healer/player has
+    // - Create a new healer with the fields: name, healing points, and survival score
+    // - Print the players information
+    //************************************************************************************
+
+
+
+    //———————————————————————————————————-
+    // Gets the string inside the field "name" and returns it
+    //
+    public static String getName(Healer n)
+    {
+        return n.name;
+    }
+
+    //———————————————————————————————————-
+    // Sets a string inside the field "name" and returns the record created with that field inside it
+    //
+
+    public static Healer setName(Healer n , String name) {
+        n.name = name;
+        return n;
+    }
+
+    //———————————————————————————————————-
+    // Gets the integer inside the field "healing_points" and returns it
+    //
+
+    public static int getHealingPoints(Healer n)
+    {
+        return n.healing_points;
+    }
+
+
+    //———————————————————————————————————-
+    // Sets an integer inside the field "healing_points" and returns the record created with that field inside it
+    //
+
+    public static Healer setHealingPoints(Healer n , int healingpoints) {
+        n.healing_points = healingpoints;
+        return n;
+    }
+
+
+    //———————————————————————————————————-
+    // Gets the integer inside the field "survival_points" and returns it
+    //
+
+    public static int getSurvivalScore(Healer n)
+    {
+        return n.survival_score;
+    }
+
+    //———————————————————————————————————-
+    // Sets an integer inside the field "survival_score" and returns the record created with that field inside it
+    //
+
+    public static Healer setSurvivalScore(Healer n , int survivalscore) {
+        n.survival_score = survivalscore;
+        return n;
+    }
+
+    //———————————————————————————————————-
+    // Creates a new healer type with a name, healing points, a survival score
+    //
+
+    public static Healer healer(String name, int healing_points, int survival_score)
+    {
+        Healer s = new Healer();
+
+        s = setName(s, name);
+        s = setSurvivalScore(s, survival_score);
+        s = setHealingPoints(s, healing_points);
+
+
+        return s;
+    }
+
+    //———————————————————————————————————-
+    // A print method used to display the player's information at the end of the game
+    //
+
+    public static void Healer_Print(Healer h){
+        System.out.println( getName(h) + " at the end of the game you had: " + getHealingPoints(h) + " healing points " +
+                "and a survival score of: " + getSurvivalScore(h));
+
+        return;
+    }
+
+
+
+
+
+    //************************************************************************************
+    // Sorting methods
+    // Operations:
+    // - Bubble sort to get the damage value of the most damaged animal
+    // - Method used to determine the name of the most damaged animal
+    //************************************************************************************
+
+
+    //———————————————————————————————————-
+    // Method that sorts an array from highest to lowest
+    //
+
+    static void sort_algorithm(int[] values_array)
+    {
+        boolean done=false;
+
+        while (!done)
+        {
+
+            done = true;
+
+            for (int i = 0; i < values_array.length-1; i++)
+            {
+                if (values_array[i] < values_array[i+1])
+                {
+
+                    int tmp = values_array[i+1];
+                    values_array[i+1] = values_array[i];
+                    values_array[i] = tmp;
+                    done = false;
+
+
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+}
+
+
+class Healer{
+    String name;
+    int healing_points;
+    int survival_score;
+
+}
+
+
+
+
+
+
+
